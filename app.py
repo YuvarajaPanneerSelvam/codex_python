@@ -11,9 +11,11 @@ from qrcode.image.svg import SvgPathImage
 
 from nicegui import app, ui
 from transport import Transport, bootstrap
+from campus_ui import register_campus
 
 service = Transport(os.getenv('TRANSPORT_DB', 'data/transport.db'))
 bootstrap(service)
+register_campus(service)
 secret_path = Path('data/session_secret')
 secret_path.parent.mkdir(exist_ok=True)
 if not secret_path.exists():
@@ -89,6 +91,7 @@ def home():
                 with ui.column().classes('gap-0'):
                     ui.label('CampusRide').classes('text-xl font-bold')
                     ui.label(college + ' · College transport').classes('text-xs text-slate-500')
+            ui.button('Campus modules', icon='apps', on_click=lambda: ui.navigate.to('/campus')).props('flat')
             if user:
                 with ui.row().classes('items-center gap-2'):
                     ui.label(user['name']).classes('text-sm')

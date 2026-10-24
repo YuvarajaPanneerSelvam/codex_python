@@ -124,3 +124,50 @@ Map rendering uses bundled open-source Leaflet with OpenStreetMap tiles and visi
 Respect the [OpenStreetMap tile usage policy](https://operations.osmfoundation.org/policies/tiles/): retain attribution, normal browser caching and Referer headers; do not bulk-download or prefetch tiles. The community service has no availability guarantee. For a large deployment, self-host tiles or choose a provider whose terms fit your load. Open-source libraries do not eliminate hosting, bandwidth or operational costs.
 
 Browser geolocation requires HTTPS (localhost is allowed for development) and uses a minimal native JavaScript API bridge called from the Python UI. All business rules and persistence are Python. Real GPS, phone camera scanning and background behavior need physical-device testing. Browser tests use mocked GPS and tile responses and therefore do not establish real tile-server connectivity.
+
+## Campus Hub modules
+
+Select **Campus modules** in the transport header (or open `/campus`) after signing in. The same account and SQLite database are used. On startup the app adds the new tables without deleting existing transport accounts, routes, passes or check-ins. Back up `data/transport.db` before upgrading a deployment.
+
+### First administrator on Windows
+
+From the repository's VS Code PowerShell terminal, with the Python 3.12 environment already installed:
+
+```powershell
+.\.venv\Scripts\python.exe manage.py create-admin
+.\.venv\Scripts\python.exe app.py
+```
+
+The first command privately prompts for the administrator's name, email and password (10 or more characters), including password confirmation. It creates a new account and never promotes or overwrites an existing account. You can alternatively provision an administrator with the existing environment-variable workflow. Sign in with that administrator, open **Campus modules → Access**, select an existing member and choose **Edit member access**.
+
+### Permissions and audiences
+
+Administrators can use all campus modules. They can independently grant **Energy access**, **Leave manager** and **Training manager** permissions to other accounts. Academic role (`student` or `staff`) and industry assignment are separate from those administrative permissions. Registered users cannot grant themselves roles or change their training audience. Energy reads and writes, leave reviews, training management and member assignments all enforce permissions in the Python service, not just through hidden UI elements.
+
+### Campus Energy
+
+Authorized users record manual daily readings per campus: green-energy source, production, campus consumption, battery charge/discharge, distribution/export, destination, losses, and the first reading's opening storage. All quantities are kWh, stored internally as integer Wh to avoid floating-point balance errors.
+
+The ledger requires `production + discharge = consumption + charge + distribution + losses`. Stored balance is `opening + charge - discharge`; negative storage is rejected. Subsequent readings carry forward the last stored balance and must use a later date. One summary per campus per day is supported; entries are append-only, and backfilling/editing earlier readings is not implemented. Distribution requires a building/grid destination. This is accounting and monitoring from entered readings, not a physical system for generating, switching, charging or exporting electricity; no live meter, battery or inverter integration is included.
+
+### Campus Time-sheet
+
+This first phase covers regular/medical leave requests, a shared holiday calendar, campus rules text, review notes, approval/rejection and cancellation of your own pending request. Users see their own requests; leave managers see the approval desk. No one can approve their own request. Overlapping pending/approved requests are rejected. Working days currently mean Monday–Friday excluding configured holidays. Requests spanning only nonworking days are rejected; backdated requests are allowed for cases such as medical leave. Holiday dates overlapping pending or approved requests cannot be changed through this module.
+
+Rules text is informational: it does not configure a quota engine, legal policy, medical-document verification or custom workweeks. There are no hourly timesheets, attendance devices, accrual balances, notifications or payroll calculations yet. Provide only necessary leave-reason details; do not upload medical reports. There is no public access to leave reasons.
+
+### Campus Training
+
+Training managers publish role-based courses (`student`, `staff`, `admin` or `all`) or industry-based courses matching the admin-assigned industry, such as manufacturing. Eligible users enroll and mark their own progress completed. Managers can see participation and archive courses; archived courses preserve prior enrollments. Completion is self-reported and does not issue a certification. Learning content delivery, assessment, external LMS integration and certificates are outside this phase.
+
+### Campus Compute
+
+A clearly marked **Requirements pending** tab reserves the module. Compute infrastructure, allocation, workloads, scheduling and billing have not been specified or implemented.
+
+### Campus validation
+
+```powershell
+.\.venv\Scripts\python.exe -m pytest tests/test_campus.py tests/test_transport.py -q
+```
+
+The optional browser integration suite also exercises student leave submission and training progress, administrator leave approval, energy recording, and permission assignment. It runs with Linux system Chromium in the cloud; Windows, real devices and physical energy equipment have not been validated here.

@@ -11,6 +11,8 @@ import urllib.request
 
 import pytest
 from transport import Transport
+from campus import Campus
+from datetime import date, timedelta
 
 
 def test_desktop_and_mobile_journeys(tmp_path):
@@ -23,6 +25,8 @@ def test_desktop_and_mobile_journeys(tmp_path):
     password = secrets.token_urlsafe(20)
     admin = service.register('Administrator', 'admin@college.edu', password, 'admin')
     service.register('Test Student', 'student@college.edu', password)
+    modules = Campus(service)
+    modules.add_training(admin, 'Python foundations', 'role', 'student', 'Build practical Python skills.')
     service.add_route(admin, 'North Campus Express', 'Central Station → Library → Campus', '08:00', 'BUS-01', 2)
     with socket.socket() as sock:
         sock.bind(('127.0.0.1', 0))
@@ -49,6 +53,7 @@ def test_desktop_and_mobile_journeys(tmp_path):
             with playwright.sync_playwright() as p:
                 browser = p.chromium.launch(executable_path=chromium, headless=True, args=['--no-sandbox'])
                 page = browser.new_page(viewport={'width': 1440, 'height': 1000})
+                page.set_default_timeout(10000)
                 errors = []
                 page.on('pageerror', lambda error: errors.append(str(error)))
                 # Tile transport is mocked so this integration test does not load
@@ -94,6 +99,20 @@ def test_desktop_and_mobile_journeys(tmp_path):
                 page.get_by_role('button', name='Cancel reservation').click()
                 page.get_by_role('button', name='Cancel booking', exact=True).click()
                 playwright.expect(page.get_by_text('No bookings yet.', exact=False)).to_be_visible()
+                page.get_by_role('button', name='Campus modules', exact=True).click()
+                playwright.expect(page.get_by_role('tab', name='Energy', exact=False)).to_have_count(0)
+                page.get_by_text('Request leave', exact=True).click()
+                leave_day = (date.today() + timedelta(days=(7 - date.today().weekday()) % 7)).isoformat()
+                page.get_by_label('Leave start date', exact=True).fill(leave_day)
+                page.get_by_label('Leave end date', exact=True).fill(leave_day)
+                page.get_by_label('Leave reason', exact=True).fill('Personal appointment')
+                page.get_by_role('button', name='Submit leave request', exact=True).click()
+                playwright.expect(page.get_by_role('cell', name='pending', exact=True)).to_be_visible()
+                page.get_by_role('tab', name='Training', exact=False).click()
+                page.get_by_role('button', name='Enroll in training', exact=True).click()
+                page.get_by_role('button', name='Mark training complete', exact=True).click()
+                playwright.expect(page.get_by_text('completed', exact=True)).to_be_visible()
+                page.get_by_role('button', name='Back to transport', exact=True).click()
                 page.get_by_role('button', name='Sign out').click()
                 page.get_by_role('button', name='Student / admin sign in').click()
                 page.get_by_label('College email', exact=True).fill('admin@college.edu')
@@ -115,6 +134,31 @@ def test_desktop_and_mobile_journeys(tmp_path):
                 playwright.expect(page.get_by_text('South Campus', exact=True)).to_be_visible()
                 assert page.evaluate('document.documentElement.scrollWidth <= window.innerWidth')
                 page.screenshot(path=str(tmp_path / 'mobile.png'), full_page=True)
+                page.set_viewport_size({'width': 1440, 'height': 1000})
+                page.get_by_role('button', name='Campus modules', exact=True).click()
+                page.get_by_label('Review note for request 1', exact=True).fill('Approved for the appointment')
+                page.get_by_role('button', name='Approve #1', exact=True).click()
+                playwright.expect(page.get_by_text('#1 · Test Student · regular · approved', exact=True)).to_be_visible()
+                page.get_by_role('tab', name='Energy', exact=False).click()
+                page.get_by_text('Record energy reading', exact=True).click()
+                page.get_by_label('Produced kWh', exact=True).fill('100')
+                page.get_by_label('Consumed kWh', exact=True).fill('60')
+                page.get_by_label('Battery charged kWh', exact=True).fill('30')
+                page.get_by_label('Distributed / exported kWh', exact=True).fill('10')
+                page.get_by_label('Distribution destination (building / grid)', exact=True).fill('Library')
+                page.get_by_role('button', name='Save energy reading', exact=True).click()
+                playwright.expect(page.get_by_text('30 kWh stored', exact=True)).to_be_visible()
+                page.get_by_role('tab', name='Access', exact=False).click()
+                page.get_by_label('Member', exact=True).click()
+                page.get_by_text('Test Student · student@college.edu', exact=True).click()
+                page.get_by_role('button', name='Edit member access', exact=True).click()
+                page.get_by_role('checkbox', name='Energy access', exact=True).click()
+                playwright.expect(page.get_by_role('checkbox', name='Energy access', exact=True)).to_be_checked()
+                page.get_by_role('button', name='Save member access', exact=True).click()
+                playwright.expect(page.get_by_role('button', name='Save member access', exact=True)).not_to_be_visible()
+                assert modules.can(service.authenticate('student@college.edu', password)['id'], 'energy')
+                page.get_by_role('tab', name='Compute', exact=False).click()
+                playwright.expect(page.get_by_text('Requirements pending', exact=True)).to_be_visible()
                 assert not errors
                 browser.close()
         finally:
