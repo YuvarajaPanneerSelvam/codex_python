@@ -3,6 +3,7 @@ import os
 from datetime import date
 from pathlib import Path
 import secrets
+import time
 
 from nicegui import app, ui
 from transport import Transport, bootstrap
@@ -41,6 +42,8 @@ def home():
             ui.notify(str(exc), type='warning')
 
     def logout():
+        if user:
+            service.check_out(user['id'])
         app.storage.user.clear()
         ui.navigate.to('/')
 
@@ -109,6 +112,46 @@ def home():
         selected_day = {'value': date.today().isoformat()}
         search = {'value': ''}
 
+        def checkin_dialog(route):
+            if not user:
+                auth_dialog()
+                return
+            with ui.dialog() as dialog, ui.card().classes('w-96 max-w-full p-6'):
+                ui.label(f"On board {route['bus']}?").classes('text-xl font-semibold')
+                ui.label('Drivers, students and staff can all report a bus location. Only check in while you are on this bus. Drivers must stop safely before using the app.')
+                ui.label('This shares your current coordinates with signed-in users for 10 minutes. Your name is not shown. It is one snapshot, not background tracking. Check in again to update; end your check-in when you leave.').classes('text-slate-500')
+
+                async def share():
+                    share_button.disable()
+                    try:
+                        # Browser geolocation requires its native JavaScript API; all
+                        # application logic, validation and persistence remain Python.
+                        position = await ui.run_javascript('''return await new Promise(resolve => {
+                            if (!navigator.geolocation) {
+                                resolve({error: 'Location is unavailable. Use a supported browser over HTTPS.'});
+                                return;
+                            }
+                            navigator.geolocation.getCurrentPosition(
+                                p => resolve({latitude: p.coords.latitude, longitude: p.coords.longitude, accuracy: p.coords.accuracy}),
+                                e => resolve({error: e.code === 1 ? 'Location permission was denied. Allow location in browser settings to check in.' : 'Could not obtain your location. Try again where GPS is available.'}),
+                                {enableHighAccuracy: true, maximumAge: 0, timeout: 10000});
+                        });''', timeout=15)
+                        if not position or position.get('error'):
+                            raise ValueError((position or {}).get('error', 'Location is unavailable.'))
+                        if app.storage.user.get('user_id') != user['id']:
+                            raise ValueError('Sign in again before sharing location.')
+                        service.check_in(user['id'], route['id'], position['latitude'], position['longitude'], position['accuracy'])
+                        dialog.close()
+                        ui.notify('Location reported. Update it by checking in again.', type='positive')
+                        content.refresh()
+                    except (ValueError, TimeoutError) as exc:
+                        ui.notify(str(exc) or 'Location request timed out. Please try again.', type='warning')
+                    finally:
+                        share_button.enable()
+                share_button = ui.button('Share my current location', icon='my_location', on_click=share)
+                ui.button('Not now', on_click=dialog.close).props('flat')
+            dialog.open()
+
         @ui.refreshable
         def content():
             with ui.tab_panels(sections, value=sections.value or routes_tab).classes('w-full bg-transparent'):
@@ -150,6 +193,22 @@ def home():
                                     button = ui.button('Reserve seat', icon='arrow_forward', on_click=reserve).props('unelevated')
                                     if route['available'] == 0:
                                         button.disable()
+                                if selected_day['value'] == date.today().isoformat():
+                                    if user:
+                                        report = service.latest_report(user['id'], route['id'])
+                                        if report:
+                                            age = max(0, int(time.time() - report['reported_at']))
+                                            ui.label(f'Last reported location · {age // 60} min {age % 60} sec ago').classes('font-medium text-teal-700')
+                                            ui.label(f"GPS accuracy ±{report['accuracy']:.0f} m · Community report, not verified bus GPS").classes('text-xs text-slate-500')
+                                            ui.link('View reported location on map', f"https://www.openstreetmap.org/?mlat={report['latitude']}&mlon={report['longitude']}#map=16/{report['latitude']}/{report['longitude']}", new_tab=True)
+                                        else:
+                                            ui.label('No recent location report. Bus status is unknown.').classes('text-sm text-slate-500')
+                                    else:
+                                        ui.label('Sign in to view bus location reports.').classes('text-sm text-slate-500')
+                                    ui.button('I am on this bus · Check in', icon='location_on', on_click=lambda r=route: checkin_dialog(r)).props('outline')
+                    if user:
+                        ui.button('End my check-in', icon='location_off', on_click=lambda: action(lambda: service.check_out(user['id']), 'Your location report was removed.')).props('flat')
+                    ui.label('Location reports expire after 10 minutes. Refresh to fetch the latest reports. No report does not mean the bus is cancelled.').classes('text-xs text-slate-500 mt-3')
                 with ui.tab_panel(bookings_tab).classes('p-0'):
                     ui.label('Your travel passes').classes('text-2xl font-bold mb-4')
                     if not user:

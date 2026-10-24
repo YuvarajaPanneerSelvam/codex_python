@@ -75,3 +75,52 @@ def test_invalid_date_and_route(system):
         service.routes('invalid')
     with pytest.raises(ValueError, match='capacity'):
         service.add_route(admin, 'Bad', 'A → B', '99:00', 'BUS', 0)
+
+
+def test_any_signed_in_person_can_report_and_withdraw(system):
+    service, admin, student, route = system
+    # No seat booking is required to contribute a location.
+    service.check_in(student, route, 13.08, 80.27, 15)
+    report = service.latest_report(admin, route)
+    assert report['latitude'] == 13.08
+    assert report['accuracy'] == 15
+    assert set(report) == {'latitude', 'longitude', 'accuracy', 'reported_at'}
+    service.check_in(admin, route, 13.09, 80.28, 20)
+    assert service.latest_report(student, route)['latitude'] == 13.09
+    service.check_out(admin)
+    assert service.latest_report(admin, route)['latitude'] == 13.08
+    service.check_out(student)
+    assert service.latest_report(admin, route) is None
+
+
+def test_report_expiry_route_switch_and_archiving(system):
+    import time
+    service, admin, student, route = system
+    service.check_in(student, route, 13, 80, 10)
+    with service.connection() as db:
+        db.execute('UPDATE checkins SET reported_at=?', (time.time() - 601,))
+    assert service.latest_report(admin, route) is None
+    other = service.add_route(admin, 'South', 'Town → Campus', '09:00', 'BUS-02', 30)
+    service.check_in(student, route, 13, 80, 10)
+    service.check_in(student, other, 12, 80, 10)
+    assert service.latest_report(admin, route) is None
+    assert service.latest_report(admin, other) is not None
+    service.archive_route(admin, other)
+    assert service.latest_report(student, other) is None
+    with pytest.raises(ValueError, match='no longer'):
+        service.check_in(student, other, 12, 80, 10)
+
+
+@pytest.mark.parametrize('lat,lon,accuracy', [(91, 80, 10), (13, -181, 10), (float('nan'), 80, 10), (13, 80, float('inf')), (13, 80, -1), (13, 80, 1001), (None, 80, 10)])
+def test_invalid_report_coordinates(system, lat, lon, accuracy):
+    service, _, student, route = system
+    with pytest.raises(ValueError, match='valid GPS'):
+        service.check_in(student, route, lat, lon, accuracy)
+
+
+def test_reports_require_authentication(system):
+    service, _, _, route = system
+    with pytest.raises(ValueError, match='Sign in'):
+        service.check_in(9999, route, 13, 80, 10)
+    with pytest.raises(ValueError, match='Sign in'):
+        service.latest_report(None, route)
