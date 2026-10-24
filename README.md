@@ -8,7 +8,9 @@ A responsive college transport application for phone, tablet and desktop browser
 - Routes, ordered stops, bus numbers, departure times, travel date and route/stop search.
 - Date-specific seat reservations, passes and cancellation; atomic capacity checks prevent overbooking.
 - Administrator-only route creation, route archiving and passenger lists.
-- Voluntary bus check-ins: any signed-in student, driver or staff member can report their current location without a seat booking.
+- Daily bus QR check-in with numbered seats or standing status; seated claims cannot overlap.
+- Foreground GPS updates from consenting checked-in riders; embedded OpenStreetMap/Leaflet bus map.
+- Campus, bus-code and pickup-stop search, check-in based remaining seats, and an admin-only onboard roster.
 - Persistent SQLite data and a database-backed `/health` readiness endpoint.
 - Responsive layout for mobile and desktop. Optional native desktop window using pywebview.
 
@@ -36,6 +38,7 @@ Set configuration in your shell or hosting provider before startup (a `.env` fil
 | `TRANSPORT_DB` | SQLite path; defaults to data/transport.db |
 | `SESSION_SECRET` | Optional stable random signing secret; otherwise generated in data/session_secret |
 | `HOST` / `PORT` | Bind address / port; defaults to 0.0.0.0 / 8080 |
+| `PUBLIC_BASE_URL` | Public HTTPS app address used in boarding QR links; set before printing |
 | `NATIVE_DESKTOP` | Set to 1 for optional desktop window mode |
 
 Supply both admin variables for first startup, sign in with that account, and add routes under Administration. They provision a new account, never reset an existing password. Remove the password variable after provisioning. Preserve `data/` and `.nicegui/` across restarts, keep them private and out of version control, and back up the database. Changing the session secret invalidates existing sessions.
@@ -52,7 +55,7 @@ Set `NATIVE_DESKTOP=1`, then run `app.py`. pywebview requires a supported OS web
 
 ## Mobile
 
-The browser interface runs on Android and iOS and uses the same backend. This repository does not yet produce an Android APK, iOS binary or offline-installable PWA. Those require a separate packaging and device-validation step. Check-ins share a single GPS snapshot, not continuous live tracking. A dedicated driver app, payments, notifications, email verification and password recovery are not included in this version. Registration is open; add college identity verification or SSO before a public college rollout. Departure times and booking dates use the server's local calendar; configure its timezone to match the college.
+The browser interface runs on Android and iOS and uses the same backend. This repository does not yet produce an Android APK, iOS binary or offline-installable PWA. Those require a separate packaging and device-validation step. Check-ins can share GPS about every 15 seconds while the browser page remains open and visible; background/locked-screen tracking is not guaranteed. A dedicated driver app, payments, notifications, email verification and password recovery are not included in this version. Registration is open; add college identity verification or SSO before a public college rollout. Departure times and booking dates use the server's local calendar; configure its timezone to match the college.
 
 ## Tests
 
@@ -69,12 +72,24 @@ For browser integration checks with a system Chromium installation:
 
 Browser tests start an isolated server and database and check desktop/mobile rendering, sign-in, reservations, cancellations, and admin route creation. Set `CHROMIUM_PATH` if Chromium is not at `/usr/bin/chromium`; otherwise the browser test skips explicitly.
 
-## Community bus location reports
+## Boarding QR and numbered seats
 
-On a route card for today, sign in and select **I am on this bus · Check in**, confirm that you are aboard, then allow browser location permission. Students, drivers and staff can all contribute using a registered account; a seat booking is not required. Drivers should only interact with the app while safely stopped.
+Each bus code has one active route and a destination campus. Admins can generate and download a daily QR as SVG from **Administration → Daily boarding QR**. Set `PUBLIC_BASE_URL` to your reachable HTTPS app address before generating the QR. Display it inside the bus on a screen, or replace the printed sheet daily. A permanently printed sticker cannot change by itself. Codes expire at the next server calendar day; configure the server timezone to match your college. Seats must be numbered from 1 to the configured capacity.
 
-A check-in shares the phone/computer's current coordinates with signed-in users for 10 minutes. The route card shows the most recent report, its age, GPS accuracy and an OpenStreetMap link. Reporter identity is not displayed. Reports are community submissions: they do not verify that the person is aboard, prove bus movement, or calculate arrival time. No recent report means unknown status, not a cancelled bus. Tap Refresh to retrieve updated reports; there is no automatic background tracking.
+Scan the QR using the phone's camera/QR reader. It opens `/board`, asks you to sign in, then opens the bus check-in dialog. Choose your actual numbered seat, or standing only where permitted, and grant browser location permission. Desktop users can open or paste the scanned QR link. A current daily token for the correct bus is required. Expired and wrong-bus tokens are rejected. Concurrent check-ins cannot claim the same seat. A QR can be photographed or shared, so it is an access gate, not proof of physical presence; college identity verification remains necessary before public rollout.
 
-Check in again to update the location. One account can report on only one route at a time. **End my check-in** deletes your report; signing out also removes it. Expired reports are hidden immediately by the read query and are deleted on the next check-in. Only the latest snapshot per contributor is retained, not a location history. Archiving a route hides its reports. Devices must provide finite coordinates and an accuracy radius within 1 km.
+Seats remaining = configured capacity minus today's seated check-ins. Standing riders are counted separately and do not consume numbered seats. The app does not authorize standing travel or enforce a standing capacity. A seat reservation is separate from an onboard check-in: **reservation slots** must not be confused with occupied seats. Checked-in accounts are self-reports, not verified headcounts. Only admins can see member names and seat assignments.
 
-Geolocation requires HTTPS (or localhost during development) and device permission. Browser geolocation uses a small native JavaScript API bridge invoked from the Python interface; no separate frontend project is required. The rest of the feature, including access control, validation, expiry and persistence, is Python. Opening the map contacts OpenStreetMap; no map request occurs before clicking its link. Browser integration tests use mocked coordinates; real GPS accuracy and permissions still require testing on a physical phone.
+**End my check-in** or sign out when leaving. Switching buses releases the previous seat after a valid new check-in. GPS loss does not release a seat; membership persists for the rest of the calendar day unless checked out. At midnight seat claims expire and users must scan the new QR. Admins should reconcile forgotten check-outs operationally; there is no automated proof that someone left the bus.
+
+## Foreground GPS and open-source maps
+
+Explicit consent starts a GPS request about every 15 seconds while the page is open and visible. No separate GPS device or paid map key is needed. The user must keep location services, browser permission and internet enabled. The app cannot turn them on remotely. Reloading or closing the page stops foreground sharing; a saved check-in alone does not restart it. Check in again after reloading to resume.
+
+The **Bus map** tab lets signed-in users select a bus by code, route and campus. It shows the newest contributor position, accuracy and age; the marker and occupancy refresh about every 15 seconds. Reports older than 60 seconds are marked delayed; reports older than 10 minutes are hidden. No report means unknown status, not a cancelled bus. Conflicting reports are not fused: the newest one wins, so GPS spoofing and malicious reports remain limitations. There is no route polyline, ETA calculation or automatic route matching yet.
+
+Map rendering uses bundled open-source Leaflet with OpenStreetMap tiles and visible attribution. Tiles load only after **Load OpenStreetMap** is selected. The cloud environment must allow `tile.openstreetmap.org`; a blocked tile request leaves the base map unavailable even if GPS updates work. The saved configuration includes that hostname, but saving the draft does not apply network changes. Review/save settings and publish the environment to activate the prepared configuration.
+
+Respect the [OpenStreetMap tile usage policy](https://operations.osmfoundation.org/policies/tiles/): retain attribution, normal browser caching and Referer headers; do not bulk-download or prefetch tiles. The community service has no availability guarantee. For a large deployment, self-host tiles or choose a provider whose terms fit your load. Open-source libraries do not eliminate hosting, bandwidth or operational costs.
+
+Browser geolocation requires HTTPS (localhost is allowed for development) and uses a minimal native JavaScript API bridge called from the Python UI. All business rules and persistence are Python. Real GPS, phone camera scanning and background behavior need physical-device testing. Browser tests use mocked GPS and tile responses and therefore do not establish real tile-server connectivity.

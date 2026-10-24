@@ -36,7 +36,26 @@ class Transport:
                     latitude REAL NOT NULL, longitude REAL NOT NULL,
                     accuracy REAL NOT NULL, reported_at REAL NOT NULL);
                 CREATE INDEX IF NOT EXISTS checkins_route_time ON checkins(route_id, reported_at);
+                CREATE TABLE IF NOT EXISTS bus_sessions (
+                    user_id INTEGER PRIMARY KEY REFERENCES users(id),
+                    route_id INTEGER NOT NULL REFERENCES routes(id),
+                    started_at REAL NOT NULL, seating TEXT NOT NULL DEFAULT 'seated');
+                CREATE TABLE IF NOT EXISTS boarding_tokens (
+                    route_id INTEGER NOT NULL REFERENCES routes(id),
+                    day TEXT NOT NULL, token TEXT UNIQUE NOT NULL,
+                    PRIMARY KEY(route_id,day));
             ''')
+            columns = {r['name'] for r in db.execute('PRAGMA table_info(routes)')}
+            if 'campus' not in columns:
+                db.execute("ALTER TABLE routes ADD COLUMN campus TEXT NOT NULL DEFAULT 'Main Campus'")
+            session_columns = {r['name'] for r in db.execute('PRAGMA table_info(bus_sessions)')}
+            if 'seating' not in session_columns:
+                db.execute("ALTER TABLE bus_sessions ADD COLUMN seating TEXT NOT NULL DEFAULT 'seated'")
+            if 'seat_number' not in session_columns:
+                db.execute('ALTER TABLE bus_sessions ADD COLUMN seat_number INTEGER')
+            if 'checkin_day' not in session_columns:
+                db.execute("ALTER TABLE bus_sessions ADD COLUMN checkin_day TEXT NOT NULL DEFAULT ''")
+            db.execute('CREATE UNIQUE INDEX IF NOT EXISTS occupied_seat ON bus_sessions(route_id,seat_number) WHERE seat_number IS NOT NULL')
 
     @contextmanager
     def connection(self):
@@ -91,10 +110,10 @@ class Transport:
         if not actor or actor['role'] != 'admin':
             raise ValueError('Administrator access is required.')
 
-    def add_route(self, actor_id, name, stops, departure, bus, capacity):
+    def add_route(self, actor_id, name, stops, departure, bus, capacity, campus='Main Campus'):
         from datetime import datetime
         self.require_admin(actor_id)
-        if not all(str(v).strip() for v in (name, stops, departure, bus)):
+        if not all(str(v).strip() for v in (name, stops, departure, bus, campus)):
             raise ValueError('Complete every route field.')
         try:
             departure = datetime.strptime(departure, '%H:%M').strftime('%H:%M')
@@ -104,13 +123,18 @@ class Transport:
         except (ValueError, TypeError):
             raise ValueError('Use a valid 24-hour time and capacity from 1 to 100.') from None
         with self.connection() as db:
-            return db.execute('INSERT INTO routes(name,stops,departure,bus,capacity) VALUES(?,?,?,?,?)',
-                              (name.strip(), stops.strip(), departure, bus.strip(), capacity)).lastrowid
+            db.execute('BEGIN IMMEDIATE')
+            if db.execute('SELECT id FROM routes WHERE lower(bus)=lower(?) AND active=1', (bus.strip(),)).fetchone():
+                raise ValueError('This bus code already has an active route. Use a unique bus code.')
+            return db.execute('INSERT INTO routes(name,stops,departure,bus,capacity,campus) VALUES(?,?,?,?,?,?)',
+                              (name.strip(), stops.strip(), departure, bus.strip(), capacity, campus.strip())).lastrowid
 
     def archive_route(self, actor_id, route_id):
         self.require_admin(actor_id)
         with self.connection() as db:
             db.execute('UPDATE routes SET active=0 WHERE id=?', (route_id,))
+            db.execute('DELETE FROM checkins WHERE route_id=?', (route_id,))
+            db.execute('DELETE FROM bus_sessions WHERE route_id=?', (route_id,))
 
     @staticmethod
     def valid_day(day):
@@ -159,8 +183,8 @@ class Transport:
             ''' + ('' if admin else ' WHERE b.user_id=?') + ' ORDER BY b.day DESC,r.departure',
                 () if admin else (user_id,))]
 
-    def check_in(self, user_id, route_id, latitude, longitude, accuracy):
-        """Publish one voluntary location snapshot. A person can report on one bus at a time."""
+    def check_in(self, user_id, route_id, latitude, longitude, accuracy, *, require_active=False, seating=None, seat_number=None, qr_token=None):
+        """Start a bus session or update GPS for a consenting active contributor."""
         try:
             lat, lon, accuracy = float(latitude), float(longitude), float(accuracy)
             if not all(math.isfinite(v) for v in (lat, lon, accuracy)):
@@ -173,9 +197,40 @@ class Transport:
             db.execute('BEGIN IMMEDIATE')
             if not db.execute('SELECT id FROM users WHERE id=?', (user_id,)).fetchone():
                 raise ValueError('Sign in to check in.')
-            if not db.execute('SELECT id FROM routes WHERE id=? AND active=1', (route_id,)).fetchone():
+            route = db.execute('SELECT * FROM routes WHERE id=? AND active=1', (route_id,)).fetchone()
+            if not route:
                 raise ValueError('This route is no longer available.')
+            if require_active and not db.execute('SELECT user_id FROM bus_sessions WHERE user_id=? AND route_id=?', (user_id, route_id)).fetchone():
+                raise ValueError('Your check-in ended or moved to another bus. Start again to share location.')
+            existing = db.execute('SELECT * FROM bus_sessions WHERE user_id=?', (user_id,)).fetchone()
+            today = date.today().isoformat()
+            if require_active:
+                if existing['checkin_day'] != today:
+                    raise ValueError('Scan today\'s bus QR to check in again.')
+            else:
+                token = db.execute('SELECT token FROM boarding_tokens WHERE route_id=? AND day=?', (route_id, today)).fetchone()
+                if not isinstance(qr_token, str) or not token or not hmac.compare_digest(token['token'].encode(), qr_token.encode()):
+                    raise ValueError('Scan the current daily QR code displayed on this bus.')
+            db.execute('DELETE FROM bus_sessions WHERE checkin_day != ?', (today,))
+            db.execute('DELETE FROM checkins WHERE user_id NOT IN (SELECT user_id FROM bus_sessions)')
+            chosen_seating = seating or (existing['seating'] if existing and existing['route_id'] == route_id else 'seated')
+            if chosen_seating not in ('seated', 'standing'):
+                raise ValueError('Choose seated or standing.')
+            seated = db.execute("SELECT COUNT(*) FROM bus_sessions WHERE route_id=? AND seating='seated' AND user_id!=?", (route_id, user_id)).fetchone()[0]
+            if chosen_seating == 'seated' and seated >= route['capacity']:
+                raise ValueError('All seats are checked in. Choose standing only if permitted and you are already aboard, or choose another bus.')
+            chosen_seat = None
+            if chosen_seating == 'seated':
+                chosen_seat = seat_number if seat_number is not None else (existing['seat_number'] if existing and existing['route_id'] == route_id else None)
+                if not isinstance(chosen_seat, int) or isinstance(chosen_seat, bool) or not 1 <= chosen_seat <= route['capacity']:
+                    raise ValueError(f'Choose a seat number from 1 to {route["capacity"]}.')
+                if db.execute('SELECT user_id FROM bus_sessions WHERE route_id=? AND seat_number=? AND user_id!=?', (route_id, chosen_seat, user_id)).fetchone():
+                    raise ValueError('This seat is already checked in. Choose another seat.')
             db.execute('DELETE FROM checkins WHERE reported_at < ?', (time.time() - 600,))
+            started_at = existing['started_at'] if existing and existing['route_id'] == route_id else time.time()
+            db.execute('''INSERT INTO bus_sessions(user_id,route_id,started_at,seating,seat_number,checkin_day) VALUES(?,?,?,?,?,?) ON CONFLICT(user_id)
+                DO UPDATE SET route_id=excluded.route_id, started_at=excluded.started_at,seating=excluded.seating,seat_number=excluded.seat_number,checkin_day=excluded.checkin_day''',
+                (user_id, route_id, started_at, chosen_seating, chosen_seat, today))
             db.execute('''INSERT INTO checkins VALUES(?,?,?,?,?,?)
                 ON CONFLICT(user_id) DO UPDATE SET route_id=excluded.route_id,
                 latitude=excluded.latitude, longitude=excluded.longitude,
@@ -189,13 +244,75 @@ class Transport:
         with self.connection() as db:
             row = db.execute('''SELECT latitude,longitude,accuracy,reported_at FROM checkins
                 WHERE route_id=? AND reported_at>=?
+                AND user_id IN (SELECT user_id FROM bus_sessions WHERE checkin_day=?)
                 AND EXISTS(SELECT 1 FROM routes WHERE id=? AND active=1)
-                ORDER BY reported_at DESC LIMIT 1''', (route_id, time.time() - 600, route_id)).fetchone()
+                ORDER BY reported_at DESC LIMIT 1''', (route_id, time.time() - 600, date.today().isoformat(), route_id)).fetchone()
             return dict(row) if row else None
 
     def check_out(self, user_id):
         with self.connection() as db:
             db.execute('DELETE FROM checkins WHERE user_id=?', (user_id,))
+            db.execute('DELETE FROM bus_sessions WHERE user_id=?', (user_id,))
+
+    def active_session(self, user_id):
+        with self.connection() as db:
+            row = db.execute('''SELECT s.route_id,s.started_at,s.seating,s.seat_number,r.bus,r.name,r.campus
+                FROM bus_sessions s JOIN routes r ON r.id=s.route_id WHERE s.user_id=? AND r.active=1 AND s.checkin_day=?''', (user_id, date.today().isoformat())).fetchone()
+            return dict(row) if row else None
+
+    def onboard_count(self, viewer_id, route_id):
+        if not self.user(viewer_id):
+            raise ValueError('Sign in to view check-in counts.')
+        with self.connection() as db:
+            return db.execute('SELECT COUNT(*) FROM bus_sessions WHERE route_id=? AND checkin_day=?', (route_id, date.today().isoformat())).fetchone()[0]
+
+    def occupancy(self, viewer_id, route_id):
+        if not self.user(viewer_id):
+            raise ValueError('Sign in to view bus occupancy.')
+        with self.connection() as db:
+            row = db.execute('''SELECT r.capacity,
+                SUM(CASE WHEN s.seating='seated' THEN 1 ELSE 0 END) AS seated,
+                SUM(CASE WHEN s.seating='standing' THEN 1 ELSE 0 END) AS standing
+                FROM routes r LEFT JOIN bus_sessions s ON s.route_id=r.id AND s.checkin_day=?
+                WHERE r.id=? AND r.active=1 GROUP BY r.id''', (date.today().isoformat(), route_id)).fetchone()
+            if not row:
+                return None
+            return {**dict(row), 'available_seats': max(0, row['capacity'] - row['seated'])}
+
+    def onboard_members(self, actor_id):
+        self.require_admin(actor_id)
+        with self.connection() as db:
+            return [dict(r) for r in db.execute('''SELECT u.name AS member,r.bus,r.campus,s.seating,s.seat_number,
+                r.name AS route,s.started_at,c.reported_at FROM bus_sessions s
+                JOIN users u ON u.id=s.user_id JOIN routes r ON r.id=s.route_id
+                LEFT JOIN checkins c ON c.user_id=s.user_id WHERE s.checkin_day=? ORDER BY r.bus,u.name''', (date.today().isoformat(),))]
+
+    def daily_qr(self, actor_id, route_id):
+        self.require_admin(actor_id)
+        today = date.today().isoformat()
+        with self.connection() as db:
+            if not db.execute('SELECT id FROM routes WHERE id=? AND active=1', (route_id,)).fetchone():
+                raise ValueError('This route is no longer available.')
+            db.execute('INSERT OR IGNORE INTO boarding_tokens(route_id,day,token) VALUES(?,?,?)', (route_id, today, secrets.token_urlsafe(32)))
+            return db.execute('SELECT token FROM boarding_tokens WHERE route_id=? AND day=?', (route_id, today)).fetchone()[0]
+
+    def route_for_qr(self, token):
+        with self.connection() as db:
+            row = db.execute('''SELECT r.* FROM routes r JOIN boarding_tokens t ON t.route_id=r.id
+                WHERE t.token=? AND t.day=? AND r.active=1''', (token, date.today().isoformat())).fetchone()
+            if not row:
+                raise ValueError('This boarding QR is invalid or expired. Scan today\'s code on your bus.')
+            return dict(row)
+
+    def available_seats(self, user_id, route_id):
+        if not self.user(user_id):
+            raise ValueError('Sign in to choose a seat.')
+        with self.connection() as db:
+            route = db.execute('SELECT capacity FROM routes WHERE id=? AND active=1', (route_id,)).fetchone()
+            if not route:
+                return []
+            occupied = {r[0] for r in db.execute('SELECT seat_number FROM bus_sessions WHERE route_id=? AND user_id!=? AND checkin_day=? AND seat_number IS NOT NULL', (route_id, user_id, date.today().isoformat()))}
+            return [n for n in range(1, route['capacity'] + 1) if n not in occupied]
 
     def cancel(self, user_id, booking_id):
         with self.connection() as db:

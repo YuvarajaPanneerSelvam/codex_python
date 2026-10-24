@@ -1,5 +1,6 @@
 """Full browser journeys using an isolated database and server."""
 import os
+import base64
 from pathlib import Path
 import secrets
 import socket
@@ -50,6 +51,10 @@ def test_desktop_and_mobile_journeys(tmp_path):
                 page = browser.new_page(viewport={'width': 1440, 'height': 1000})
                 errors = []
                 page.on('pageerror', lambda error: errors.append(str(error)))
+                # Tile transport is mocked so this integration test does not load
+                # community tile servers or depend on external network access.
+                tile = base64.b64decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jVxkAAAAASUVORK5CYII=')
+                page.route('https://tile.openstreetmap.org/**', lambda route: route.fulfill(status=200, content_type='image/png', body=tile))
                 page.goto(base)
                 playwright.expect(page.get_by_text('North Campus Express', exact=True)).to_be_visible()
                 page.get_by_role('button', name='Student / admin sign in').click()
@@ -59,10 +64,28 @@ def test_desktop_and_mobile_journeys(tmp_path):
                 playwright.expect(page.get_by_text('Test Student', exact=True)).to_be_visible()
                 page.context.grant_permissions(['geolocation'], origin=base)
                 page.context.set_geolocation({'latitude': 13.08, 'longitude': 80.27, 'accuracy': 15})
-                page.get_by_role('button', name='I am on this bus · Check in').click()
-                page.get_by_role('button', name='Share my current location').click()
+                page.goto(base + '/board?token=' + service.daily_qr(admin, 1))
+                page.get_by_role('button', name='Start sharing bus location').click()
                 playwright.expect(page.get_by_text('Last reported location', exact=False)).to_be_visible()
                 playwright.expect(page.get_by_role('link', name='View reported location on map')).to_have_attribute('href', 'https://www.openstreetmap.org/?mlat=13.08&mlon=80.27#map=16/13.08/80.27')
+                playwright.expect(page.get_by_text('1 seats remaining · 1/2 seated · 0 standing', exact=True)).to_be_visible()
+                page.get_by_role('tab', name='Bus map', exact=False).click()
+                page.get_by_role('button', name='Load OpenStreetMap', exact=True).click()
+                playwright.expect(page.locator('.leaflet-marker-icon')).to_be_visible()
+                playwright.expect(page.locator('.leaflet-control-attribution')).to_contain_text('OpenStreetMap')
+                initial = service.latest_report(admin, 1)['reported_at']
+                page.context.set_geolocation({'latitude': 13.09, 'longitude': 80.28, 'accuracy': 12})
+                deadline = time.monotonic() + 25
+                while time.monotonic() < deadline:
+                    latest = service.latest_report(admin, 1)
+                    if latest['reported_at'] > initial and latest['latitude'] == 13.09:
+                        break
+                    page.wait_for_timeout(200)
+                else:
+                    pytest.fail('Foreground GPS did not update automatically')
+                page.get_by_role('button', name='Refresh bus position', exact=True).click()
+                playwright.expect(page.get_by_text('Recent GPS report', exact=False)).to_be_visible()
+                page.get_by_role('tab', name='Routes & schedules', exact=False).click()
                 page.get_by_role('button', name='End my check-in').click()
                 playwright.expect(page.get_by_text('No recent location report.', exact=False)).to_be_visible()
                 page.get_by_role('button', name='Reserve seat').click()
@@ -77,6 +100,10 @@ def test_desktop_and_mobile_journeys(tmp_path):
                 page.get_by_label('Password', exact=True).fill(password)
                 page.get_by_role('button', name='Sign in', exact=True).click()
                 page.get_by_role('tab', name='Administration', exact=False).click()
+                page.get_by_role('button', name='Daily boarding QR', exact=True).click()
+                playwright.expect(page.get_by_role('button', name='Download daily QR', exact=True)).to_be_visible()
+                playwright.expect(page.locator('[role=dialog] svg')).to_be_visible()
+                page.get_by_role('button', name='Close', exact=True).click()
                 page.get_by_text('Add a bus route', exact=True).click()
                 page.get_by_label('Route name', exact=True).fill('South Campus')
                 page.get_by_label('Stops (in travel order)', exact=True).fill('Town → Campus')
