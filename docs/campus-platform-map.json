@@ -1,0 +1,1334 @@
+{
+  "name": "Campus App Platform",
+  "kind": "root",
+  "note": "Discussion handoff: Campus App → apps → modules/features. Institutional research pending. Planning does not authorize implementation.",
+  "children": [
+    {
+      "name": "Requested campus apps",
+      "kind": "requested",
+      "note": "User-named apps. Prototype status is recorded per app; inclusion does not mean an Odoo app already exists.",
+      "children": [
+        {
+          "name": "Campus Transport",
+          "kind": "requested",
+          "note": "NiceGUI prototype exists. Odoo implementation has not started. Campus-level transport policies and standing limits need specification.",
+          "children": [
+            {
+              "name": "Bus code / series → route → destination campus",
+              "kind": "requested",
+              "note": "",
+              "children": [],
+              "id": "n3",
+              "depth": 3
+            },
+            {
+              "name": "Pickup points and alternative buses to the same campus",
+              "kind": "requested",
+              "note": "",
+              "children": [],
+              "id": "n4",
+              "depth": 3
+            },
+            {
+              "name": "Daily rotating bus QR: scan → sign in → choose numbered seat",
+              "kind": "requested",
+              "note": "",
+              "children": [],
+              "id": "n5",
+              "depth": 3
+            },
+            {
+              "name": "One seat per rider; prevent duplicate seat claims",
+              "kind": "requested",
+              "note": "",
+              "children": [],
+              "id": "n6",
+              "depth": 3
+            },
+            {
+              "name": "Seated / standing check-in; remaining seat count",
+              "kind": "requested",
+              "note": "",
+              "children": [],
+              "id": "n7",
+              "depth": 3
+            },
+            {
+              "name": "Check-out releases seat; reservations are separate",
+              "kind": "requested",
+              "note": "",
+              "children": [],
+              "id": "n8",
+              "depth": 3
+            },
+            {
+              "name": "Drivers, students or staff may contribute GPS with consent",
+              "kind": "requested",
+              "note": "",
+              "children": [],
+              "id": "n9",
+              "depth": 3
+            },
+            {
+              "name": "OpenStreetMap + Leaflet; last-update time and GPS accuracy",
+              "kind": "requested",
+              "note": "",
+              "children": [],
+              "id": "n10",
+              "depth": 3
+            },
+            {
+              "name": "Stale / offline status; no report means unknown, not cancelled",
+              "kind": "requested",
+              "note": "",
+              "children": [],
+              "id": "n11",
+              "depth": 3
+            },
+            {
+              "name": "QR screen or fresh print daily; copied QR is not proof of presence",
+              "kind": "requested",
+              "note": "",
+              "children": [],
+              "id": "n12",
+              "depth": 3
+            },
+            {
+              "name": "Browser GPS needs HTTPS, permission and connectivity",
+              "kind": "requested",
+              "note": "",
+              "children": [],
+              "id": "n13",
+              "depth": 3
+            },
+            {
+              "name": "Foreground updates only; locked-screen tracking is not guaranteed",
+              "kind": "requested",
+              "note": "",
+              "children": [],
+              "id": "n14",
+              "depth": 3
+            }
+          ],
+          "id": "n2",
+          "depth": 2
+        },
+        {
+          "name": "Campus Energy",
+          "kind": "requested",
+          "note": "The existing prototype has a manual kWh ledger, not physical energy-control equipment.",
+          "children": [
+            {
+              "name": "Green generation: solar / wind / other sources",
+              "kind": "requested",
+              "note": "",
+              "children": [],
+              "id": "n16",
+              "depth": 3
+            },
+            {
+              "name": "Campus energy consumption and surplus",
+              "kind": "requested",
+              "note": "",
+              "children": [],
+              "id": "n17",
+              "depth": 3
+            },
+            {
+              "name": "Battery charge / discharge and stored balance",
+              "kind": "requested",
+              "note": "",
+              "children": [],
+              "id": "n18",
+              "depth": 3
+            },
+            {
+              "name": "Distribution / export quantity and destination",
+              "kind": "requested",
+              "note": "",
+              "children": [],
+              "id": "n19",
+              "depth": 3
+            },
+            {
+              "name": "Energy balance, losses and campus-wise readings",
+              "kind": "requested",
+              "note": "",
+              "children": [],
+              "id": "n20",
+              "depth": 3
+            },
+            {
+              "name": "Admin / explicitly assigned energy role only",
+              "kind": "requested",
+              "note": "",
+              "children": [],
+              "id": "n21",
+              "depth": 3
+            },
+            {
+              "name": "Live meter / inverter integration is a later design decision",
+              "kind": "requested",
+              "note": "",
+              "children": [],
+              "id": "n22",
+              "depth": 3
+            }
+          ],
+          "id": "n15",
+          "depth": 2
+        },
+        {
+          "name": "Campus Time-sheet",
+          "kind": "requested",
+          "note": "Leave workflows exist in the prototype. A complete attendance/payroll system was not requested for the first version.",
+          "children": [
+            {
+              "name": "Regular and medical leave tracking",
+              "kind": "requested",
+              "note": "",
+              "children": [],
+              "id": "n24",
+              "depth": 3
+            },
+            {
+              "name": "Holiday calendar and campus rules / engagements",
+              "kind": "requested",
+              "note": "",
+              "children": [],
+              "id": "n25",
+              "depth": 3
+            },
+            {
+              "name": "Request → approval / rejection → review notes",
+              "kind": "requested",
+              "note": "",
+              "children": [],
+              "id": "n26",
+              "depth": 3
+            },
+            {
+              "name": "Own-request privacy; authorized leave managers",
+              "kind": "requested",
+              "note": "",
+              "children": [],
+              "id": "n27",
+              "depth": 3
+            },
+            {
+              "name": "Prevent self-approval and duplicate overlapping requests",
+              "kind": "requested",
+              "note": "",
+              "children": [],
+              "id": "n28",
+              "depth": 3
+            },
+            {
+              "name": "Workweeks, quotas and local policies need specification",
+              "kind": "requested",
+              "note": "",
+              "children": [],
+              "id": "n29",
+              "depth": 3
+            },
+            {
+              "name": "Hourly time entry / payroll is not in the prototype",
+              "kind": "requested",
+              "note": "",
+              "children": [],
+              "id": "n30",
+              "depth": 3
+            }
+          ],
+          "id": "n23",
+          "depth": 2
+        },
+        {
+          "name": "Campus Training",
+          "kind": "requested",
+          "note": "Role/industry enrollment and self-reported completion exist in the prototype.",
+          "children": [
+            {
+              "name": "Role-based learning: student / staff / other assigned roles",
+              "kind": "requested",
+              "note": "",
+              "children": [],
+              "id": "n32",
+              "depth": 3
+            },
+            {
+              "name": "Industry-based learning and industry assignments",
+              "kind": "requested",
+              "note": "",
+              "children": [],
+              "id": "n33",
+              "depth": 3
+            },
+            {
+              "name": "Course catalogue and eligibility",
+              "kind": "requested",
+              "note": "",
+              "children": [],
+              "id": "n34",
+              "depth": 3
+            },
+            {
+              "name": "Enrollment and progress / completion",
+              "kind": "requested",
+              "note": "",
+              "children": [],
+              "id": "n35",
+              "depth": 3
+            },
+            {
+              "name": "Assessment, certificates and LMS integration: later scope",
+              "kind": "requested",
+              "note": "",
+              "children": [],
+              "id": "n36",
+              "depth": 3
+            }
+          ],
+          "id": "n31",
+          "depth": 2
+        },
+        {
+          "name": "Campus Compute",
+          "kind": "pending",
+          "note": "Only a clearly marked placeholder exists. Do not infer an implemented compute service.",
+          "children": [
+            {
+              "name": "Module name confirmed; requirements pending",
+              "kind": "pending",
+              "note": "",
+              "children": [],
+              "id": "n38",
+              "depth": 3
+            },
+            {
+              "name": "Resource types / users / quotas: to be defined",
+              "kind": "pending",
+              "note": "",
+              "children": [],
+              "id": "n39",
+              "depth": 3
+            },
+            {
+              "name": "Scheduling / allocation / costing: to be defined",
+              "kind": "pending",
+              "note": "",
+              "children": [],
+              "id": "n40",
+              "depth": 3
+            }
+          ],
+          "id": "n37",
+          "depth": 2
+        },
+        {
+          "name": "Campus Recruitment",
+          "kind": "pending",
+          "note": "Not implemented. Hiring and placements may need separate apps.",
+          "children": [
+            {
+              "name": "Module name mentioned; requirements pending",
+              "kind": "pending",
+              "note": "",
+              "children": [],
+              "id": "n42",
+              "depth": 3
+            },
+            {
+              "name": "Clarify staff hiring versus student placement workflows",
+              "kind": "pending",
+              "note": "",
+              "children": [],
+              "id": "n43",
+              "depth": 3
+            }
+          ],
+          "id": "n41",
+          "depth": 2
+        },
+        {
+          "name": "Campus Innovations",
+          "kind": "requested",
+          "note": "Module requested. This lifecycle is a proposed starting structure; no innovation workflow has been implemented.",
+          "children": [
+            {
+              "name": "Idea submission and innovation challenges",
+              "kind": "requested",
+              "note": "",
+              "children": [],
+              "id": "n45",
+              "depth": 3
+            },
+            {
+              "name": "Evaluation and prototype development",
+              "kind": "requested",
+              "note": "",
+              "children": [],
+              "id": "n46",
+              "depth": 3
+            },
+            {
+              "name": "Funding / incubation / startup support",
+              "kind": "requested",
+              "note": "",
+              "children": [],
+              "id": "n47",
+              "depth": 3
+            },
+            {
+              "name": "Patents / intellectual property / technology transfer",
+              "kind": "requested",
+              "note": "",
+              "children": [],
+              "id": "n48",
+              "depth": 3
+            }
+          ],
+          "id": "n44",
+          "depth": 2
+        }
+      ],
+      "id": "n1",
+      "depth": 1
+    },
+    {
+      "name": "Additional app catalogue",
+      "kind": "proposed",
+      "note": "Suggestions for completeness. Not approved implementation scope, and not a verified university service inventory.",
+      "children": [
+        {
+          "name": "Academics & Students",
+          "kind": "proposed",
+          "note": "",
+          "children": [
+            {
+              "name": "Admissions",
+              "kind": "proposed",
+              "note": "",
+              "children": [],
+              "id": "n51",
+              "depth": 3
+            },
+            {
+              "name": "Student records and documents",
+              "kind": "proposed",
+              "note": "",
+              "children": [],
+              "id": "n52",
+              "depth": 3
+            },
+            {
+              "name": "Courses and LMS",
+              "kind": "proposed",
+              "note": "",
+              "children": [],
+              "id": "n53",
+              "depth": 3
+            },
+            {
+              "name": "Timetable and academic calendar",
+              "kind": "proposed",
+              "note": "",
+              "children": [],
+              "id": "n54",
+              "depth": 3
+            },
+            {
+              "name": "Attendance",
+              "kind": "proposed",
+              "note": "",
+              "children": [],
+              "id": "n55",
+              "depth": 3
+            },
+            {
+              "name": "Exams and results",
+              "kind": "proposed",
+              "note": "",
+              "children": [],
+              "id": "n56",
+              "depth": 3
+            }
+          ],
+          "id": "n50",
+          "depth": 2
+        },
+        {
+          "name": "Research & Grants",
+          "kind": "proposed",
+          "note": "",
+          "children": [
+            {
+              "name": "Research projects",
+              "kind": "proposed",
+              "note": "",
+              "children": [],
+              "id": "n58",
+              "depth": 3
+            },
+            {
+              "name": "Grant applications and budgets",
+              "kind": "proposed",
+              "note": "",
+              "children": [],
+              "id": "n59",
+              "depth": 3
+            },
+            {
+              "name": "Ethics approvals",
+              "kind": "proposed",
+              "note": "",
+              "children": [],
+              "id": "n60",
+              "depth": 3
+            },
+            {
+              "name": "Publications",
+              "kind": "proposed",
+              "note": "",
+              "children": [],
+              "id": "n61",
+              "depth": 3
+            },
+            {
+              "name": "Research collaboration",
+              "kind": "proposed",
+              "note": "",
+              "children": [],
+              "id": "n62",
+              "depth": 3
+            }
+          ],
+          "id": "n57",
+          "depth": 2
+        },
+        {
+          "name": "Industry & Careers",
+          "kind": "proposed",
+          "note": "",
+          "children": [
+            {
+              "name": "Industry partnerships",
+              "kind": "proposed",
+              "note": "",
+              "children": [],
+              "id": "n64",
+              "depth": 3
+            },
+            {
+              "name": "Consultancy",
+              "kind": "proposed",
+              "note": "",
+              "children": [],
+              "id": "n65",
+              "depth": 3
+            },
+            {
+              "name": "Internships",
+              "kind": "proposed",
+              "note": "",
+              "children": [],
+              "id": "n66",
+              "depth": 3
+            },
+            {
+              "name": "Student placements",
+              "kind": "proposed",
+              "note": "",
+              "children": [],
+              "id": "n67",
+              "depth": 3
+            }
+          ],
+          "id": "n63",
+          "depth": 2
+        },
+        {
+          "name": "People / HR",
+          "kind": "proposed",
+          "note": "",
+          "children": [
+            {
+              "name": "Staff records",
+              "kind": "proposed",
+              "note": "",
+              "children": [],
+              "id": "n69",
+              "depth": 3
+            },
+            {
+              "name": "Joining / transfers / exit",
+              "kind": "proposed",
+              "note": "",
+              "children": [],
+              "id": "n70",
+              "depth": 3
+            },
+            {
+              "name": "Role and department assignments",
+              "kind": "proposed",
+              "note": "",
+              "children": [],
+              "id": "n71",
+              "depth": 3
+            },
+            {
+              "name": "Staff recruitment linkage",
+              "kind": "proposed",
+              "note": "",
+              "children": [],
+              "id": "n72",
+              "depth": 3
+            }
+          ],
+          "id": "n68",
+          "depth": 2
+        },
+        {
+          "name": "Resources & Purchasing",
+          "kind": "proposed",
+          "note": "",
+          "children": [
+            {
+              "name": "Library",
+              "kind": "proposed",
+              "note": "",
+              "children": [],
+              "id": "n74",
+              "depth": 3
+            },
+            {
+              "name": "Labs and equipment booking",
+              "kind": "proposed",
+              "note": "",
+              "children": [],
+              "id": "n75",
+              "depth": 3
+            },
+            {
+              "name": "Assets and inventory",
+              "kind": "proposed",
+              "note": "",
+              "children": [],
+              "id": "n76",
+              "depth": 3
+            },
+            {
+              "name": "Procurement",
+              "kind": "proposed",
+              "note": "",
+              "children": [],
+              "id": "n77",
+              "depth": 3
+            },
+            {
+              "name": "Room and facility booking",
+              "kind": "proposed",
+              "note": "",
+              "children": [],
+              "id": "n78",
+              "depth": 3
+            }
+          ],
+          "id": "n73",
+          "depth": 2
+        },
+        {
+          "name": "Campus Services",
+          "kind": "proposed",
+          "note": "",
+          "children": [
+            {
+              "name": "Hostel",
+              "kind": "proposed",
+              "note": "",
+              "children": [],
+              "id": "n80",
+              "depth": 3
+            },
+            {
+              "name": "Dining / canteen",
+              "kind": "proposed",
+              "note": "",
+              "children": [],
+              "id": "n81",
+              "depth": 3
+            },
+            {
+              "name": "Maintenance",
+              "kind": "proposed",
+              "note": "",
+              "children": [],
+              "id": "n82",
+              "depth": 3
+            },
+            {
+              "name": "Helpdesk and service requests",
+              "kind": "proposed",
+              "note": "",
+              "children": [],
+              "id": "n83",
+              "depth": 3
+            },
+            {
+              "name": "Visitors",
+              "kind": "proposed",
+              "note": "",
+              "children": [],
+              "id": "n84",
+              "depth": 3
+            }
+          ],
+          "id": "n79",
+          "depth": 2
+        },
+        {
+          "name": "Student Life",
+          "kind": "proposed",
+          "note": "",
+          "children": [
+            {
+              "name": "Clubs and societies",
+              "kind": "proposed",
+              "note": "",
+              "children": [],
+              "id": "n86",
+              "depth": 3
+            },
+            {
+              "name": "Student council",
+              "kind": "proposed",
+              "note": "",
+              "children": [],
+              "id": "n87",
+              "depth": 3
+            },
+            {
+              "name": "Sports",
+              "kind": "proposed",
+              "note": "",
+              "children": [],
+              "id": "n88",
+              "depth": 3
+            },
+            {
+              "name": "Events and registration",
+              "kind": "proposed",
+              "note": "",
+              "children": [],
+              "id": "n89",
+              "depth": 3
+            },
+            {
+              "name": "Volunteering",
+              "kind": "proposed",
+              "note": "",
+              "children": [],
+              "id": "n90",
+              "depth": 3
+            }
+          ],
+          "id": "n85",
+          "depth": 2
+        },
+        {
+          "name": "Wellbeing & Safety",
+          "kind": "proposed",
+          "note": "",
+          "children": [
+            {
+              "name": "Health services",
+              "kind": "proposed",
+              "note": "",
+              "children": [],
+              "id": "n92",
+              "depth": 3
+            },
+            {
+              "name": "Counselling",
+              "kind": "proposed",
+              "note": "",
+              "children": [],
+              "id": "n93",
+              "depth": 3
+            },
+            {
+              "name": "Accessibility support",
+              "kind": "proposed",
+              "note": "",
+              "children": [],
+              "id": "n94",
+              "depth": 3
+            },
+            {
+              "name": "Emergency / incident reporting",
+              "kind": "proposed",
+              "note": "",
+              "children": [],
+              "id": "n95",
+              "depth": 3
+            },
+            {
+              "name": "Grievances",
+              "kind": "proposed",
+              "note": "",
+              "children": [],
+              "id": "n96",
+              "depth": 3
+            }
+          ],
+          "id": "n91",
+          "depth": 2
+        },
+        {
+          "name": "IT Services",
+          "kind": "proposed",
+          "note": "",
+          "children": [
+            {
+              "name": "IT support",
+              "kind": "proposed",
+              "note": "",
+              "children": [],
+              "id": "n98",
+              "depth": 3
+            },
+            {
+              "name": "Network access",
+              "kind": "proposed",
+              "note": "",
+              "children": [],
+              "id": "n99",
+              "depth": 3
+            },
+            {
+              "name": "Software licences",
+              "kind": "proposed",
+              "note": "",
+              "children": [],
+              "id": "n100",
+              "depth": 3
+            },
+            {
+              "name": "Compute-service integration",
+              "kind": "proposed",
+              "note": "",
+              "children": [],
+              "id": "n101",
+              "depth": 3
+            }
+          ],
+          "id": "n97",
+          "depth": 2
+        },
+        {
+          "name": "Wider Sustainability",
+          "kind": "proposed",
+          "note": "",
+          "children": [
+            {
+              "name": "Water",
+              "kind": "proposed",
+              "note": "",
+              "children": [],
+              "id": "n103",
+              "depth": 3
+            },
+            {
+              "name": "Waste",
+              "kind": "proposed",
+              "note": "",
+              "children": [],
+              "id": "n104",
+              "depth": 3
+            },
+            {
+              "name": "Environmental and carbon reporting",
+              "kind": "proposed",
+              "note": "",
+              "children": [],
+              "id": "n105",
+              "depth": 3
+            },
+            {
+              "name": "Energy-module linkage",
+              "kind": "proposed",
+              "note": "",
+              "children": [],
+              "id": "n106",
+              "depth": 3
+            }
+          ],
+          "id": "n102",
+          "depth": 2
+        },
+        {
+          "name": "Finance",
+          "kind": "proposed",
+          "note": "",
+          "children": [
+            {
+              "name": "Fees and payments",
+              "kind": "proposed",
+              "note": "",
+              "children": [],
+              "id": "n108",
+              "depth": 3
+            },
+            {
+              "name": "Scholarships",
+              "kind": "proposed",
+              "note": "",
+              "children": [],
+              "id": "n109",
+              "depth": 3
+            },
+            {
+              "name": "Budgets and expenses",
+              "kind": "proposed",
+              "note": "",
+              "children": [],
+              "id": "n110",
+              "depth": 3
+            },
+            {
+              "name": "Accounts",
+              "kind": "proposed",
+              "note": "",
+              "children": [],
+              "id": "n111",
+              "depth": 3
+            }
+          ],
+          "id": "n107",
+          "depth": 2
+        },
+        {
+          "name": "Community",
+          "kind": "proposed",
+          "note": "",
+          "children": [
+            {
+              "name": "Parent / guardian portal",
+              "kind": "proposed",
+              "note": "",
+              "children": [],
+              "id": "n113",
+              "depth": 3
+            },
+            {
+              "name": "Alumni",
+              "kind": "proposed",
+              "note": "",
+              "children": [],
+              "id": "n114",
+              "depth": 3
+            },
+            {
+              "name": "Donations",
+              "kind": "proposed",
+              "note": "",
+              "children": [],
+              "id": "n115",
+              "depth": 3
+            },
+            {
+              "name": "Community outreach",
+              "kind": "proposed",
+              "note": "",
+              "children": [],
+              "id": "n116",
+              "depth": 3
+            }
+          ],
+          "id": "n112",
+          "depth": 2
+        },
+        {
+          "name": "Governance & Quality",
+          "kind": "proposed",
+          "note": "",
+          "children": [
+            {
+              "name": "Committees",
+              "kind": "proposed",
+              "note": "",
+              "children": [],
+              "id": "n118",
+              "depth": 3
+            },
+            {
+              "name": "Policies and documents",
+              "kind": "proposed",
+              "note": "",
+              "children": [],
+              "id": "n119",
+              "depth": 3
+            },
+            {
+              "name": "Accreditation",
+              "kind": "proposed",
+              "note": "",
+              "children": [],
+              "id": "n120",
+              "depth": 3
+            },
+            {
+              "name": "Quality assurance",
+              "kind": "proposed",
+              "note": "",
+              "children": [],
+              "id": "n121",
+              "depth": 3
+            }
+          ],
+          "id": "n117",
+          "depth": 2
+        }
+      ],
+      "id": "n49",
+      "depth": 1
+    },
+    {
+      "name": "Common platform foundation",
+      "kind": "foundation",
+      "note": "Shared services used by every enabled app, with campus-specific policies.",
+      "children": [
+        {
+          "name": "Organization & Configuration",
+          "kind": "foundation",
+          "note": "",
+          "children": [
+            {
+              "name": "College group → campus → college → department",
+              "kind": "foundation",
+              "note": "",
+              "children": [],
+              "id": "n124",
+              "depth": 3
+            },
+            {
+              "name": "Academic year / semester",
+              "kind": "foundation",
+              "note": "",
+              "children": [],
+              "id": "n125",
+              "depth": 3
+            },
+            {
+              "name": "Enable only selected apps per campus",
+              "kind": "foundation",
+              "note": "",
+              "children": [],
+              "id": "n126",
+              "depth": 3
+            },
+            {
+              "name": "Campus-specific branding / language / forms / numbering",
+              "kind": "foundation",
+              "note": "",
+              "children": [],
+              "id": "n127",
+              "depth": 3
+            },
+            {
+              "name": "Campus-specific rules and approval policies",
+              "kind": "foundation",
+              "note": "",
+              "children": [],
+              "id": "n128",
+              "depth": 3
+            }
+          ],
+          "id": "n123",
+          "depth": 2
+        },
+        {
+          "name": "Identity & Permissions",
+          "kind": "foundation",
+          "note": "",
+          "children": [
+            {
+              "name": "Single login / optional SSO",
+              "kind": "foundation",
+              "note": "",
+              "children": [],
+              "id": "n130",
+              "depth": 3
+            },
+            {
+              "name": "One person profile; multiple roles",
+              "kind": "foundation",
+              "note": "",
+              "children": [],
+              "id": "n131",
+              "depth": 3
+            },
+            {
+              "name": "Role + campus scoped access",
+              "kind": "foundation",
+              "note": "",
+              "children": [],
+              "id": "n132",
+              "depth": 3
+            },
+            {
+              "name": "Group-admin cross-campus visibility rules",
+              "kind": "foundation",
+              "note": "",
+              "children": [],
+              "id": "n133",
+              "depth": 3
+            },
+            {
+              "name": "Joining → transfer → graduation / resignation → alumni",
+              "kind": "foundation",
+              "note": "",
+              "children": [],
+              "id": "n134",
+              "depth": 3
+            }
+          ],
+          "id": "n129",
+          "depth": 2
+        },
+        {
+          "name": "Shared Experience",
+          "kind": "foundation",
+          "note": "",
+          "children": [
+            {
+              "name": "App launcher and consistent navigation",
+              "kind": "foundation",
+              "note": "",
+              "children": [],
+              "id": "n136",
+              "depth": 3
+            },
+            {
+              "name": "Common forms / tables / filters / search",
+              "kind": "foundation",
+              "note": "",
+              "children": [],
+              "id": "n137",
+              "depth": 3
+            },
+            {
+              "name": "Mobile and desktop layouts",
+              "kind": "foundation",
+              "note": "",
+              "children": [],
+              "id": "n138",
+              "depth": 3
+            },
+            {
+              "name": "Accessibility and localization",
+              "kind": "foundation",
+              "note": "",
+              "children": [],
+              "id": "n139",
+              "depth": 3
+            },
+            {
+              "name": "Shared-resource booking across campuses",
+              "kind": "foundation",
+              "note": "",
+              "children": [],
+              "id": "n140",
+              "depth": 3
+            }
+          ],
+          "id": "n135",
+          "depth": 2
+        },
+        {
+          "name": "Shared Workflows",
+          "kind": "foundation",
+          "note": "",
+          "children": [
+            {
+              "name": "Approvals and review history",
+              "kind": "foundation",
+              "note": "",
+              "children": [],
+              "id": "n142",
+              "depth": 3
+            },
+            {
+              "name": "Documents",
+              "kind": "foundation",
+              "note": "",
+              "children": [],
+              "id": "n143",
+              "depth": 3
+            },
+            {
+              "name": "Notifications and announcements",
+              "kind": "foundation",
+              "note": "",
+              "children": [],
+              "id": "n144",
+              "depth": 3
+            },
+            {
+              "name": "Events and registrations",
+              "kind": "foundation",
+              "note": "",
+              "children": [],
+              "id": "n145",
+              "depth": 3
+            },
+            {
+              "name": "Campus and group-level reports",
+              "kind": "foundation",
+              "note": "",
+              "children": [],
+              "id": "n146",
+              "depth": 3
+            }
+          ],
+          "id": "n141",
+          "depth": 2
+        },
+        {
+          "name": "Integrations & Operations",
+          "kind": "foundation",
+          "note": "",
+          "children": [
+            {
+              "name": "ERP / SSO / payments / biometric devices",
+              "kind": "foundation",
+              "note": "",
+              "children": [],
+              "id": "n148",
+              "depth": 3
+            },
+            {
+              "name": "GPS / energy meter interfaces",
+              "kind": "foundation",
+              "note": "",
+              "children": [],
+              "id": "n149",
+              "depth": 3
+            },
+            {
+              "name": "Excel import / migration / duplicate resolution",
+              "kind": "foundation",
+              "note": "",
+              "children": [],
+              "id": "n150",
+              "depth": 3
+            },
+            {
+              "name": "Audit history / privacy / retention",
+              "kind": "foundation",
+              "note": "",
+              "children": [],
+              "id": "n151",
+              "depth": 3
+            },
+            {
+              "name": "Backup / restore / monitoring",
+              "kind": "foundation",
+              "note": "",
+              "children": [],
+              "id": "n152",
+              "depth": 3
+            },
+            {
+              "name": "Poor-connectivity and offline requirements",
+              "kind": "foundation",
+              "note": "",
+              "children": [],
+              "id": "n153",
+              "depth": 3
+            }
+          ],
+          "id": "n147",
+          "depth": 2
+        }
+      ],
+      "id": "n122",
+      "depth": 1
+    },
+    {
+      "name": "Status & feasibility boundaries",
+      "kind": "pending",
+      "note": "Planning constraints and implementation limits from this conversation.",
+      "children": [
+        {
+          "name": "Current code: Python + NiceGUI + SQLite; not Odoo",
+          "kind": "pending",
+          "note": "",
+          "children": [],
+          "id": "n155",
+          "depth": 2
+        },
+        {
+          "name": "Odoo option: Python backend + XML / JavaScript-Owl UI + PostgreSQL",
+          "kind": "pending",
+          "note": "",
+          "children": [],
+          "id": "n156",
+          "depth": 2
+        },
+        {
+          "name": "Odoo Community first; verify each app and dependency licence",
+          "kind": "pending",
+          "note": "",
+          "children": [],
+          "id": "n157",
+          "depth": 2
+        },
+        {
+          "name": "Open-source maps: no mandatory paid key; hosting and tile-policy limits remain",
+          "kind": "pending",
+          "note": "",
+          "children": [],
+          "id": "n158",
+          "depth": 2
+        },
+        {
+          "name": "Institutional service-catalogue research has NOT been completed",
+          "kind": "pending",
+          "note": "",
+          "children": [],
+          "id": "n159",
+          "depth": 2
+        },
+        {
+          "name": "MIT / IIT / Oxford are reference institutions, not verified source lists",
+          "kind": "pending",
+          "note": "",
+          "children": [],
+          "id": "n160",
+          "depth": 2
+        },
+        {
+          "name": "Analysis only: no Odoo migration or new platform launcher has started",
+          "kind": "pending",
+          "note": "",
+          "children": [],
+          "id": "n161",
+          "depth": 2
+        },
+        {
+          "name": "Agree scope / Odoo version / deployment before implementation",
+          "kind": "pending",
+          "note": "",
+          "children": [],
+          "id": "n162",
+          "depth": 2
+        }
+      ],
+      "id": "n154",
+      "depth": 1
+    }
+  ],
+  "id": "n0",
+  "depth": 0
+}
