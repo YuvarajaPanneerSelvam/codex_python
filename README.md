@@ -16,7 +16,38 @@ A responsive college transport application for phone, tablet and desktop browser
 
 ## Run
 
-Requires Python 3.12 or newer. From this repository:
+Use Python **3.12**. This project was tested on Python 3.12.14 on Linux. Python 3.12.10 is expected to work but was not separately tested. Python 3.14 and Windows execution have not been validated here.
+
+### Windows — VS Code PowerShell
+
+Open the cloned repository folder in VS Code, then choose **Terminal → New Terminal**. Run each command separately from the folder containing `app.py` and `requirements.txt`.
+
+For first-time setup:
+
+```powershell
+py -3.12 --version
+py -3.12 -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+.\.venv\Scripts\python.exe app.py
+```
+
+If `py -3.12` is not found, install Python 3.12, reopen VS Code, and retry. Check an existing environment with `.\.venv\Scripts\python.exe --version`. If it uses Python 3.14, stop the app, rename that `.venv` folder to an unused backup name, then create a new `.venv` using Python 3.12. Do not overwrite an existing backup or delete your source files or `data/`.
+
+After pulling updates, if `.venv` already uses Python 3.12:
+
+```powershell
+git pull origin main
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+.\.venv\Scripts\python.exe app.py
+```
+
+VS Code's **Pull** action can replace the first command when your branch tracks `origin/main`. The install and run commands still belong in PowerShell. Calling the environment's Python directly requires no activation script or PowerShell execution-policy change. `uvloop==0.23.0` is skipped on Windows because it is unsupported there; Uvicorn can use the standard `asyncio` event loop instead.
+
+Once startup succeeds, open **http://localhost:8080** on that laptop. Stop the app with **Ctrl+C** before restarting it.
+
+### Linux / macOS
+
+From this repository:
 
 ```bash
 python3 -m venv .venv
